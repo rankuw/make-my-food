@@ -1,15 +1,22 @@
 import { useEffect, useState } from "react"
-import RestaurantCart from "./Resturant"
-import {restaurantData, RESTAURANT_API} from "../constant"
-import { Button } from '@chakra-ui/react'
+import RestaurantCart, { promotionRestCard } from "./Resturant"
+import {RESTAURANT_API} from "../constant"
+import { Button, Flex } from '@chakra-ui/react'
 import { filterRestaurant } from "../utils/helper"
 import Shimmer from "./Shimmer"
+import { Link } from "react-router-dom"
+import UserContext from "../utils/userContext"
+import { useContext } from "react"
 
 const Body = () => {
     const [searchText, setSearchText] = useState("Search")
     const [originalList, setOriginalList] = useState()
     const [filteredList, setFilterList] = useState()
-    console.log("Render called")
+    
+    const PromotedRestarurant = promotionRestCard(RestaurantCart)
+
+    const {userName, setUserName} = useContext(UserContext)
+    console.log(userName, "OOOOOOOOOOO")
 
     async function fetchRestaurants() {
         const data = await fetch(RESTAURANT_API)
@@ -29,7 +36,7 @@ const Body = () => {
         <>
             <div className="search-bar">
                 {console.log("Return jsxxx")}
-                <input placeholder="Restaurant name" value = {searchText} onChange={(e) => {setSearchText(e.target.value)}}/>
+                <input placeholder="Restaurant name" value = {searchText} onChange={(e) => {setSearchText(e.target.value); setUserName(searchText)}}/>
                 <Button 
                     colorScheme='teal' 
                     size='sm' 
@@ -37,15 +44,26 @@ const Body = () => {
                         () =>{
                             const filteredList = filterRestaurant(searchText, originalList)
                             setFilterList(filteredList)
+                            setUserName(searchText)
                         }   
                     }> Search </Button>
             </div>
             <div className="restaurant-list">
                 {
-                    filteredList.map((rest) => {
-                        return <RestaurantCart {...rest.info}/>
-                    })
+                    <Flex gap="5" p="10" wrap="wrap">
+                        {
+                            filteredList.map((rest) => {
+                            return <Link to={"/restaurant/" + rest.info.id} id={rest.info.id}>
+                                {rest.promoted ? <PromotedRestarurant /> :  <RestaurantCart {...rest.info}/> }
+                            </Link>
+                            })
+                        }
+                    </Flex>
+                    
                 }
+            </div>
+            <div>
+                {userName.name ? userName.name : userName}
             </div>
         </>
         
